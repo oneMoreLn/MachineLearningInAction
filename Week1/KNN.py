@@ -11,6 +11,7 @@ import numpy as np
 import operator
 import matplotlib
 import matplotlib.pyplot as plt
+import os
 #%%
 
 def createDataSet():
@@ -55,9 +56,9 @@ def classify0(inX, dataSet, labels, k):
     return sortedClassCount[0]
 
 #%%
-
-group, labels = createDataSet()
-print(classify0([0, 0], group, labels, 3))
+#
+#group, labels = createDataSet()
+#print(classify0([0, 0], group, labels, 3))
 #%%
 def file2matrix(filename):
     """
@@ -97,18 +98,18 @@ def file2matrix(filename):
     classifiedData['largeDoses'] = np.array(classifiedData['largeDoses'])
     return returnMat, classLabelVector, classifiedData
 #%%
-datingDataMat, datingLabels, classifiedData = file2matrix('datingTestSet.txt')
+#datingDataMat, datingLabels, classifiedData = file2matrix('datingTestSet.txt')
 
 #%%
-fig = plt.figure()
-ax = fig.add_subplot(111)
-ax.scatter(classifiedData['didntLike '][:, 0], classifiedData['didntLike '][:, 1], marker = 'o', color = 'y')
-ax.scatter(classifiedData['smallDoses'][:, 0], classifiedData['smallDoses'][:, 1], marker = 'x', color = 'g')
-ax.scatter(classifiedData['largeDoses'][:, 0], classifiedData['largeDoses'][:, 1], marker = '^', color = 'b')
-plt.legend(("didn't like", "small doses", "largeDose"))
-plt.title("Visualized dating data")
-plt.xlabel("Annual flight distance / mile")
-plt.ylabel("Video game time / %")
+#fig = plt.figure()
+#ax = fig.add_subplot(111)
+#ax.scatter(classifiedData['didntLike '][:, 0], classifiedData['didntLike '][:, 1], marker = 'o', color = 'y')
+#ax.scatter(classifiedData['smallDoses'][:, 0], classifiedData['smallDoses'][:, 1], marker = 'x', color = 'g')
+#ax.scatter(classifiedData['largeDoses'][:, 0], classifiedData['largeDoses'][:, 1], marker = '^', color = 'b')
+#plt.legend(("didn't like", "small doses", "largeDose"))
+#plt.title("Visualized dating data")
+#plt.xlabel("Annual flight distance / mile")
+#plt.ylabel("Video game time / %")
 #%%
 def autoNorm(dataSet):
     """
@@ -135,10 +136,10 @@ def autoNorm(dataSet):
     normDataSet = normDataSet / np.tile(ranges, (m, 1))
     return normDataSet, ranges, minVals
 #%%
-normMat, ranges, minVals = autoNorm(datingDataMat)
-print("归一化后的数据：\n{}".format(normMat))
-print("极差 = {}".format(ranges))
-print("最小值 = {}".format(minVals))
+#normMat, ranges, minVals = autoNorm(datingDataMat)
+#print("归一化后的数据：\n{}".format(normMat))
+#print("极差 = {}".format(ranges))
+#print("最小值 = {}".format(minVals))
 #%%
 def datingClassTest():
     #测试比例
@@ -165,7 +166,7 @@ def datingClassTest():
     #打印正确率
     print("The accuracy is: {}".format(1 - errorCount/np.float(numTestVecs)))
 #%%
-datingClassTest()
+#datingClassTest()
 #%%
 def classifyPerson():
     """
@@ -193,4 +194,86 @@ def classifyPerson():
     print("You will probably like this person: {}".format(resultList[classifierResult - 1]))
 
 #%%
-classifyPerson()
+#classifyPerson()
+#%%
+def img2vector(filename):
+    """
+    将图像转化为向量
+    参数：
+        filename -- 文件名
+    返回：
+        returnVect -- 转化后的向量
+    """
+    #为转换向量分配空间
+    returnVect = np.zeros((1, 1024))
+    #打开文件
+    fr = open(filename)
+    #遍历图像的32行
+    for i in range(32):
+        #读一行数据
+        lineStr = fr.readline()
+        #遍历每行的32列
+        for j in range(32):
+            #把每个像素存入向量中
+            returnVect[0, 32*i+j] = np.int(lineStr[j])
+    return returnVect
+#%%
+def handwritingClassTest():
+    """
+    手写数字分类测试代码
+    参数：
+        无
+    返回：
+        无
+    """
+    #手写数字标签列表
+    hwLabels = []
+    #读取‘trainingDigits’目录
+    trainingFileList = os.listdir('./trainingDigits')
+    #得到目录下文件个数
+    m = len(trainingFileList)
+    #建立训练矩阵，初始化为全零阵，分配空间
+    trainingMat = np.zeros((m, 1024))
+    #遍历所有训练样本文件
+    for i in range(m):
+        #文件名
+        fileNameStr = trainingFileList[i]
+        #文件名格式为0_1.txt
+        #去掉.txt拓展名
+        fileStr = fileNameStr.split('.')[0]
+        #得到类序号，也就是_前的数字
+        classNumStr = np.int(fileNameStr.split('_')[0])
+        #加入标签序列
+        hwLabels.append(classNumStr)
+        #转换图像为向量，并存在矩阵对应行中
+        trainingMat[i, :] = img2vector('./trainingDigits/'+fileNameStr)
+    #读取‘testDigits’目录
+    testFileList = os.listdir('./trainingDigits')
+    #错误计数
+    errorCount = 0.0
+    
+    #测试样本数
+    mTest = len(testFileList)
+    #遍历所有测试文件
+    for i in range(mTest):
+        #文件名
+        fileNameStr = testFileList[i]
+        #格式同训练样本
+        #去掉拓展名
+        fileStr = fileNameStr.split('.')[0]
+        #得到类序号
+        classNumStr = np.int(fileStr.split('_')[0])
+        #被测序列
+        vectorUnderTest = img2vector('./trainingDigits/'+fileNameStr)
+        #分类结果
+        classifierResult = classify0(vectorUnderTest, trainingMat, hwLabels, 3)
+        #结果太多了，不打印了
+        #print("分类器得到的结果：{}， 真实结果：{}".format(classifierResult, classNumStr))
+        #统计错误数
+        if (classifierResult != classNumStr):
+            errorCount += 1.0
+        #打印结果
+    print("\n错误总数为：{}".format(errorCount))
+    print("\n准确率为：{}".format(1-errorCount/np.float(mTest)))
+#%%
+#handwritingClassTest()
