@@ -6,3 +6,10 @@
 ### 任务一 -- PLA算法
 - 线性可分 -- Cyclic PLA
 - 线性不可分 -- Packet PLA
+## 第二周
+- 决策树
+- 贝叶斯分类器
+## 第三周
+- SVM和SMO
+## 第四周
+- Adaboost
